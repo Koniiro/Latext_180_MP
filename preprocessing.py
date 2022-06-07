@@ -150,4 +150,4 @@ def segment_letters(nfilename):
             lout = Image.fromarray(ev)
             lout.save(out_path + "%s_%s.jpg"%(filename, ik))
 
-segment_horizontally("bench.jpg")
+segment_horizontally("bench2.jpg")
