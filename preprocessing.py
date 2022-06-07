@@ -11,6 +11,15 @@ try:
 except ImportError:
     from skimage import filter as filters
 
+def count_white(image):
+    #counts white value of gray scale image, is it all white?
+    im = array(PIL.ImageOps.invert(image).convert('L'))
+    
+    grayscale_value = 0
+    for i in im[0]:
+        grayscale_value += i
+    return (grayscale_value/len(im[0]))**2
+
 def segment_vertically(filename):
     image = Image.open(filename)
     im = array(image.convert('L'))
@@ -52,15 +61,6 @@ def segment_vertically(filename):
     plt.show()
     
 def segment_horizontally(filename):
-    ##x = np.random.random(12)
-    ##
-    ### for local maxima
-    ##argrelextrema(x, np.greater)
-    ##
-    ### for local minima
-    ##argrelextrema(x, np.less)
-    ##x[argrelextrema(x, np.greater)[0]]
-
     # read image to array, convert it to grayscale
     image = Image.open(filename)
     im = array(image.convert('L'))
@@ -85,6 +85,7 @@ def segment_horizontally(filename):
         os.makedirs(out_path)
     os.chdir(out_path)
 
+    save_counter = 0
     for i in range(len(maximas)-1):
         left = 0
         top = maximas[i]
@@ -92,13 +93,17 @@ def segment_horizontally(filename):
         height = maximas[i+1] - maximas[i]
         box = (left, top, left+width, top+height)
         area = image.crop(box)
-        area.save("%s_%s" % (i, filename),"JPEG")
+        if count_white(area) <= 20:
+            continue
+        area.save("%s_%s" % (save_counter, filename),"JPEG")
+        save_counter += 1
         
     fig = plt.figure()
     ax = fig.add_axes([0,0,1,1])
     rownum = list(range(len(rowsums)))
     ax.bar(rownum,rowsums)
     plt.show()
+
 
 def segment_letters(nfilename):
     image = Image.open(nfilename)
