@@ -11,6 +11,46 @@ try:
 except ImportError:
     from skimage import filter as filters
 
+def segment_vertically(filename):
+    image = Image.open(filename)
+    im = array(image.convert('L'))
+    columns = list()
+    for i in im:
+        for j in range(len(i)):
+            try:
+                columns[j].append(i[j])
+            except IndexError:
+                columns.append(list())
+                columns[j].append(i[j])
+            
+    colsums = [sum(x)**2 for x in columns] #colsums contain sums of white values
+    colsumsa = array(colsums)
+    maximas = argrelextrema(colsumsa, np.greater)
+    maximas = [i for i in maximas[0]]
+    maximas.insert(0, 0)
+    maximas.append(image.width-1)
+
+    out_path = "./%s" % (filename.split(".")[0])
+    if not os.path.isdir(out_path):
+        os.makedirs(out_path)
+    os.chdir(out_path)
+
+    for i in range(len(maximas)-1):
+        left = maximas[i]
+        top = 0
+        width = maximas[i+1] - maximas[i]
+        height = image.height
+        box = (left, top, left+width, top+height)
+        area = image.crop(box)
+        
+        area.save("%s_%s" % (i, filename),"JPEG")
+        
+    fig = plt.figure()
+    ax = fig.add_axes([0,0,1,1])
+    colnum = list(range(len(colsums)))
+    ax.bar(colnum,colsums)
+    plt.show()
+    
 def segment_horizontally(filename):
     ##x = np.random.random(12)
     ##
